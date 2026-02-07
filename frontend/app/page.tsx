@@ -31,7 +31,7 @@ export default function Dashboard() {
             </div>
             <h2 className="text-xl font-bold mb-2">Connect GitHub</h2>
             <p className="text-zinc-400 mb-8">Grant Jarvis permission to code directly in your repositories.</p>
-            <a href="http://localhost:8000/login" className="inline-block w-full py-4 bg-white text-black rounded-xl font-bold text-center hover:scale-[1.02] active:scale-[0.98] transition-all">
+            <a href="https://trialmoltbot.onrender.com/login" className="inline-block w-full py-4 bg-white text-black rounded-xl font-bold text-center hover:scale-[1.02] active:scale-[0.98] transition-all">
               LOGIN WITH GITHUB
             </a>
           </div>
