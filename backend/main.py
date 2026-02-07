@@ -1,45 +1,44 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from .github_manager import GitHubManager
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import RedirectResponse
 import os
+import secrets
 
-app = FastAPI(title="Trial Molt Bot API")
+app = FastAPI(title="Trial Molt Bot - Launch MVP")
 
-# In a real app, these would come from the database based on the authenticated user
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "your_token_here")
-REPO_OWNER = os.getenv("REPO_OWNER", "divygoyal")
-REPO_NAME = os.getenv("REPO_NAME", "trialmoltbot")
+# Simulating a database
+USER_DB = {}
 
-class SEOFixRequest(BaseModel):
-    file_path: str
-    fix_description: str
-    target_keyword: str
+# GitHub OAuth App Credentials (User would replace these)
+CLIENT_ID = os.getenv("GITHUB_CLIENT_ID", "YOUR_CLIENT_ID")
+CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET", "YOUR_CLIENT_SECRET")
 
 @app.get("/")
-def read_root():
-    return {"status": "Jarvis is Online", "vision": "Autonomous SEO & Vibecoding"}
+def home():
+    return {"message": "God Vision MVP is Live. Go to /login to start."}
 
-@app.post("/apply-fix")
-def apply_fix(request: SEOFixRequest):
-    manager = GitHubManager(GITHUB_TOKEN)
+@app.get("/login")
+def login():
+    # Redirect to GitHub OAuth
+    return RedirectResponse(f"https://github.com/login/oauth/authorize?client_id={CLIENT_ID}&scope=repo")
+
+@app.get("/callback")
+def callback(code: str):
+    # In a real app, exchange code for token. 
+    # For the MVP Launch, we simulate getting the token and generating a Telegram Link Code.
+    temp_token = "ghp_mock_token_12345" 
+    link_code = secrets.token_hex(4).upper()
     
-    # 1. Get current content
-    content, sha = manager.get_file_content(REPO_OWNER, REPO_NAME, request.file_path)
-    if not content:
-        raise HTTPException(status_code=404, detail="File not found in repository")
-
-    # 2. Logic to "Vibecode" (In the real app, this sends the content to an LLM)
-    # For now, we simulate a simple header injection
-    if "header" in request.fix_description.lower():
-        updated_content = content.replace("</h1>", f"</h1>\n    <h2>Optimized for: {request.target_keyword}</h2>")
-    else:
-        updated_content = content + f"\n<!-- SEO Fix: {request.fix_description} -->"
-
-    # 3. Push to GitHub
-    commit_msg = f"SEO: {request.fix_description}"
-    success = manager.update_file(REPO_OWNER, REPO_NAME, request.file_path, updated_content, commit_msg, sha)
+    USER_DB[link_code] = {"github_token": temp_token, "repo": "trialmoltbot"}
     
-    if success:
-        return {"status": "success", "message": f"Applied fix to {request.file_path} and pushed to GitHub."}
-    else:
-        raise HTTPException(status_code=500, detail="Failed to push changes to GitHub")
+    return {
+        "status": "Success",
+        "message": "GitHub Authenticated!",
+        "telegram_instruction": f"Now open your Telegram Bot and type: /connect {link_code}"
+    }
+
+@app.get("/user/{link_code}")
+def get_user(link_code: str):
+    user = USER_DB.get(link_code)
+    if not user:
+        raise HTTPException(status_code=404, detail="Code invalid")
+    return user

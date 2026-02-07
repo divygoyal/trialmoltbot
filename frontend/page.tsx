@@ -21,72 +21,42 @@ export default function Dashboard() {
       </header>
 
       {/* Grid Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
         
-        {/* Connection Status Card */}
-        <div className="md:col-span-1 space-y-6">
-          <div className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800">
-            <h2 className="text-sm font-semibold text-zinc-400 mb-4 uppercase tracking-wider">Integrations</h2>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-zinc-200">GitHub</span>
-                <span className="text-green-500 text-xs">CONNECTED</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-zinc-200">Search Console</span>
-                <span className="text-yellow-500 text-xs">LINKED (PROTOTYPE)</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-zinc-200">Telegram Bot</span>
-                <span className="text-green-500 text-xs">ACTIVE</span>
-              </div>
+        {/* Step 1: Auth */}
+        <div className="space-y-6">
+          <div className="p-8 rounded-3xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-all">
+            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-6">
+              <span className="text-black font-bold">1</span>
             </div>
-            <button className="w-full mt-6 py-2 bg-white text-black rounded-lg font-bold text-sm hover:bg-zinc-200 transition-colors">
-              SYNC ALL DATA
-            </button>
+            <h2 className="text-xl font-bold mb-2">Connect GitHub</h2>
+            <p className="text-zinc-400 mb-8">Grant Jarvis permission to code directly in your repositories.</p>
+            <a href="http://localhost:8000/login" className="inline-block w-full py-4 bg-white text-black rounded-xl font-bold text-center hover:scale-[1.02] active:scale-[0.98] transition-all">
+              LOGIN WITH GITHUB
+            </a>
           </div>
         </div>
 
-        {/* Main Stats/Actions */}
-        <div className="md:col-span-2 space-y-6">
-          <div className="p-8 rounded-2xl bg-zinc-900 border border-zinc-800 relative overflow-hidden">
-            <div className="relative z-10">
-              <h2 className="text-lg font-bold mb-2">Autonomous Agent Status</h2>
-              <p className="text-zinc-400 mb-6 italic">"Currently scanning trialmoltbot-repo for striking distance keywords..."</p>
-              
-              <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-black border border-zinc-800 flex justify-between items-center">
-                  <div>
-                    <h3 className="text-sm font-bold">SEO Audit Found 3 Opportunities</h3>
-                    <p className="text-xs text-zinc-500">High impact changes detected for Page 2 keywords.</p>
-                  </div>
-                  <button className="px-4 py-2 bg-zinc-800 rounded-lg text-xs font-bold hover:bg-zinc-700">VIEW IN TELEGRAM</button>
-                </div>
-              </div>
+        {/* Step 2: Telegram */}
+        <div className="space-y-6">
+          <div className="p-8 rounded-3xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-all">
+            <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center mb-6">
+              <span className="text-white font-bold">2</span>
             </div>
-          </div>
-
-          {/* Recent Activity */}
-          <div className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800">
-            <h2 className="text-sm font-semibold text-zinc-400 mb-4 uppercase tracking-wider">Recent Vibecodes</h2>
-            <div className="space-y-4">
-              <div className="flex gap-4 items-start border-l-2 border-zinc-800 pl-4">
-                <div className="flex-1">
-                  <p className="text-sm text-zinc-200 font-medium">Pushed SEO fix for 'ai automation'</p>
-                  <p className="text-xs text-zinc-500">24 mins ago • divygoyal/trialmoltbot</p>
-                </div>
-              </div>
-              <div className="flex gap-4 items-start border-l-2 border-zinc-800 pl-4 opacity-50">
-                <div className="flex-1">
-                  <p className="text-sm text-zinc-200 font-medium">Initialized repo structure</p>
-                  <p className="text-xs text-zinc-500">1 hour ago • divygoyal/trialmoltbot</p>
-                </div>
-              </div>
-            </div>
+            <h2 className="text-xl font-bold mb-2">Sync Telegram</h2>
+            <p className="text-zinc-400 mb-8">Link your account to the bot to start coding with your voice or text.</p>
+            <a href="https://t.me/trialmoltbot" target="_blank" className="inline-block w-full py-4 bg-zinc-800 text-white rounded-xl font-bold text-center border border-zinc-700 hover:bg-zinc-700 transition-all">
+              OPEN TELEGRAM BOT
+            </a>
           </div>
         </div>
 
       </div>
+
+      <div className="mt-20 text-center">
+        <p className="text-zinc-600 text-sm">Trial Molt Bot v1.0 • Built for the God Vision</p>
+      </div>
+
     </main>
   );
 }
