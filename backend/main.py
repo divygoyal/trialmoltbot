@@ -1,34 +1,48 @@
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import RedirectResponse
 import os
+import threading
 import secrets
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import RedirectResponse
+from pydantic import BaseModel
+from .github_manager import GitHubManager
+from .bot import bot
 
-app = FastAPI(title="Trial Molt Bot - Launch MVP")
+app = FastAPI(title="Trial Molt Bot - God Vision MVP")
+
+# Configuration
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+REPO_OWNER = os.getenv("REPO_OWNER", "divygoyal")
+REPO_NAME = os.getenv("REPO_NAME", "trialmoltbot")
+CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
+CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
 
 # Simulating a database
 USER_DB = {}
 
-# GitHub OAuth App Credentials (User would replace these)
-CLIENT_ID = os.getenv("GITHUB_CLIENT_ID", "YOUR_CLIENT_ID")
-CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET", "YOUR_CLIENT_SECRET")
+@app.on_event("startup")
+def startup_event():
+    def run_bot():
+        print("🤖 Starting Telegram Bot thread...")
+        try:
+            bot.infinity_polling(timeout=20, long_polling_timeout=10)
+        except Exception as e:
+            print(f"Bot Error: {e}")
+    
+    thread = threading.Thread(target=run_bot, daemon=True)
+    thread.start()
 
 @app.get("/")
 def home():
-    return {"message": "God Vision MVP is Live. Go to /login to start."}
+    return {"status": "Jarvis is Online", "vision": "Autonomous SEO & Vibecoding"}
 
 @app.get("/login")
 def login():
-    # Redirect to GitHub OAuth
     return RedirectResponse(f"https://github.com/login/oauth/authorize?client_id={CLIENT_ID}&scope=repo")
 
 @app.get("/callback")
 def callback(code: str):
-    # In a real app, exchange code for token. 
-    # For the MVP Launch, we simulate getting the token and generating a Telegram Link Code.
-    temp_token = "ghp_mock_token_12345" 
     link_code = secrets.token_hex(4).upper()
-    
-    USER_DB[link_code] = {"github_token": temp_token, "repo": "trialmoltbot"}
+    USER_DB[link_code] = {"github_token": GITHUB_TOKEN, "repo": REPO_NAME}
     
     return {
         "status": "Success",
@@ -42,3 +56,23 @@ def get_user(link_code: str):
     if not user:
         raise HTTPException(status_code=404, detail="Code invalid")
     return user
+
+class SEOFixRequest(BaseModel):
+    file_path: str
+    fix_description: str
+    target_keyword: str
+
+@app.post("/apply-fix")
+def apply_fix(request: SEOFixRequest):
+    manager = GitHubManager(GITHUB_TOKEN)
+    content, sha = manager.get_file_content(REPO_OWNER, REPO_NAME, request.file_path)
+    if not content:
+        raise HTTPException(status_code=404, detail="File not found")
+
+    updated_content = content + f"\n<!-- SEO Fix: {request.fix_description} -->"
+    success = manager.update_file(REPO_OWNER, REPO_NAME, request.file_path, updated_content, f"SEO: {request.fix_description}", sha)
+    
+    if success:
+        return {"status": "success", "message": "Applied fix"}
+    else:
+        raise HTTPException(status_code=500, detail="Push failed")
