@@ -61,7 +61,7 @@ def handle_vibecode(message):
 
     # Here we call our GitHub Manager logic
     # (Simplified for the launch demo)
-    from .github_manager import GitHubManager
+    from github_manager import GitHubManager
     token = user_session['github_token']
     
     # In the prototype, we use your existing PAT if the mock fails

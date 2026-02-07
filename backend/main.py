@@ -4,8 +4,8 @@ import secrets
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
-from .github_manager import GitHubManager
-from .bot import bot
+from github_manager import GitHubManager
+from bot import bot
 
 app = FastAPI(title="Trial Molt Bot - God Vision MVP")
 

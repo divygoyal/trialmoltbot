@@ -1,5 +1,5 @@
 import os
-from .github_manager import GitHubManager
+from github_manager import GitHubManager
 
 class AutonomousDashboard:
     def __init__(self, gsc_file, repo_owner, repo_name):
@@ -10,7 +10,7 @@ class AutonomousDashboard:
         
     def run_daily_audit(self):
         # Importing here to avoid circular imports if any
-        from .seo_analyzer import analyze_gsc
+        from seo_analyzer import analyze_gsc
         
         # Use relative path if the script is run from backend/
         try:
