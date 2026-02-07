@@ -24,17 +24,30 @@ def send_welcome(message):
 @bot.message_handler(commands=['connect'])
 def connect_account(message):
     try:
-        code = message.text.split()[1].upper()
+        parts = message.text.split()
+        if len(parts) < 2:
+            bot.reply_to(message, "📝 Please use the format: `/connect CODE`")
+            return
+            
+        code = parts[1].upper()
+        bot.send_message(message.chat.id, f"📡 Verifying code `{code}` with Jarvis API...")
+        
         # Verify code with backend
-        response = requests.get(f"{BACKEND_URL}/user/{code}")
+        response = requests.get(f"{BACKEND_URL}/user/{code}", timeout=10)
+        
         if response.status_code == 200:
             user_data = response.json()
             SESSIONS[message.chat.id] = user_data
-            bot.reply_to(message, f"✅ **Connected!** I am now your engineer for `{user_data['repo']}`. \n\nWhat should we build today? Just tell me in plain English.")
+            bot.reply_to(message, f"✅ **Connected!** I am now your engineer for `{user_data['repo']}`. \n\nWhat should we build today?")
+        elif response.status_code == 404:
+            bot.reply_to(message, "❌ **Invalid Code.** The session may have expired. Please refresh the website and get a new code.")
         else:
-            bot.reply_to(message, "❌ Invalid code. Please check the website again.")
-    except Exception:
-        bot.reply_to(message, "📝 Please use the format: `/connect CODE`")
+            bot.reply_to(message, f"⚠️ **API Error:** Backend returned status `{response.status_code}`. Check Render logs.")
+            
+    except requests.exceptions.RequestException as e:
+        bot.reply_to(message, f"🌐 **Connection Error:** I couldn't reach the backend at `{BACKEND_URL}`. Make sure the API is awake!")
+    except Exception as e:
+        bot.reply_to(message, f"🐞 **Unexpected Error:** `{str(e)}`")
 
 @bot.message_handler(func=lambda m: True)
 def handle_vibecode(message):
