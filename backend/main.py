@@ -13,6 +13,9 @@ app = FastAPI(title="Trial Molt Bot - SaaS Engine")
 # Configuration (from Render Env)
 CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
 CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+REPO_NAME = os.getenv("REPO_NAME", "trialmoltbot")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://trialmoltbot-o5r5.vercel.app")
 
 # Simulating a database (In production, use PostgreSQL/Redis)
 USER_DB = {}
@@ -35,12 +38,10 @@ def home():
 
 @app.get("/login")
 def login():
-    # Step 1: Redirect user to GitHub
     return RedirectResponse(f"https://github.com/login/oauth/authorize?client_id={CLIENT_ID}&scope=repo")
 
 @app.get("/callback")
 def callback(code: str):
-    # Step 2: Exchange 'code' for a real User Access Token
     token_url = "https://github.com/login/oauth/access_token"
     payload = {
         "client_id": CLIENT_ID,
@@ -56,22 +57,17 @@ def callback(code: str):
     if not access_token:
         return {"error": "Failed to authenticate with GitHub", "details": token_data}
 
-    # Step 3: Create a unique link code for the Telegram Bot
+    # Create a unique link code
     link_code = secrets.token_hex(4).upper()
     
-    # In a real SaaS, we would also fetch the user's username/repos here
-    # For now, we store the token so the Bot can use it later
+    # Store the session
     USER_DB[link_code] = {
         "github_token": access_token,
-        "repo": "trialmoltbot" # We can make this dynamic later
+        "repo": REPO_NAME
     }
     
-    return {
-        "status": "Success",
-        "message": "GitHub Authenticated!",
-        "telegram_instruction": f"Now open your Telegram Bot and type: /connect {link_code}",
-        "link_code": link_code
-    }
+    # REDIRECT to the beautiful frontend success page instead of returning JSON
+    return RedirectResponse(f"{FRONTEND_URL}/success?code={link_code}")
 
 @app.get("/user/{link_code}")
 def get_user(link_code: str):
@@ -87,5 +83,4 @@ def apply_fix(link_code: str, file_path: str, fix_description: str):
         raise HTTPException(status_code=401, detail="User not authenticated")
         
     manager = GitHubManager(user['github_token'])
-    # ... rest of the vibecoding logic ...
     return {"status": "success"}

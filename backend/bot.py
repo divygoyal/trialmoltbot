@@ -4,7 +4,7 @@ from telebot import types
 import requests
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
+BACKEND_URL = os.getenv("BACKEND_URL", "https://trialmoltbot.onrender.com")
 bot = telebot.TeleBot(TOKEN)
 
 # In-memory storage mapping Telegram ID to GitHub session
@@ -13,11 +13,11 @@ SESSIONS = {}
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     msg = (
-        "🚀 **Trial Molt Bot: Vibecoding Activated**\n\n"
-        "To start coding via Telegram, you first need to link your account:\n"
-        "1. Go to our website and Login with GitHub.\n"
-        "2. You will get a 4-character code.\n"
-        "3. Type `/connect CODE` here."
+        "🚀 **Trial Molt Bot: God Vision Activated**\n\n"
+        "I am Jarvis, your autonomous engineer. To begin, link your account:\n"
+        "1. Go to our [Website](https://trialmoltbot-o5r5.vercel.app)\n"
+        "2. Click 'Login with GitHub'\n"
+        "3. Copy the code and type `/connect CODE` here."
     )
     bot.reply_to(message, msg, parse_mode='Markdown')
 
@@ -30,60 +30,86 @@ def connect_account(message):
             return
             
         code = parts[1].upper()
-        bot.send_message(message.chat.id, f"📡 Verifying code `{code}` with Jarvis API...")
+        bot.send_message(message.chat.id, f"📡 Verifying connection code `{code}`...")
         
-        # Verify code with backend
         response = requests.get(f"{BACKEND_URL}/user/{code}", timeout=10)
         
         if response.status_code == 200:
             user_data = response.json()
             SESSIONS[message.chat.id] = user_data
-            bot.reply_to(message, f"✅ **Connected!** I am now your engineer for `{user_data['repo']}`. \n\nWhat should we build today?")
-        elif response.status_code == 404:
-            bot.reply_to(message, "❌ **Invalid Code.** The session may have expired. Please refresh the website and get a new code.")
+            bot.reply_to(message, f"✅ **Connected!** I am now your personal engineer for `{user_data['repo']}`. \n\nWhat's the first thing we should build or fix?")
         else:
-            bot.reply_to(message, f"⚠️ **API Error:** Backend returned status `{response.status_code}`. Check Render logs.")
+            bot.reply_to(message, "❌ **Invalid Code.** Please get a fresh code from the dashboard.")
             
-    except requests.exceptions.RequestException as e:
-        bot.reply_to(message, f"🌐 **Connection Error:** I couldn't reach the backend at `{BACKEND_URL}`. Make sure the API is awake!")
     except Exception as e:
-        bot.reply_to(message, f"🐞 **Unexpected Error:** `{str(e)}`")
+        bot.reply_to(message, f"🌐 **Connection Error:** Could not reach the Jarvis API. Try again in a moment.")
 
 @bot.message_handler(func=lambda m: True)
 def handle_vibecode(message):
     user_session = SESSIONS.get(message.chat.id)
     if not user_session:
-        bot.reply_to(message, "⚠️ You need to /connect your GitHub account first!")
+        bot.reply_to(message, "⚠️ You need to `/connect` your account first!")
         return
 
     user_request = message.text
-    bot.reply_to(message, f"🛠️ **Vibecoding...**\n`Request: {user_request}`\n\nI'm drafting the code and pushing to `{user_session['repo']}`...")
+    bot.reply_to(message, f"🛠️ **Jarvis is Thinking...**\n\nI'm analyzing `{user_request}` and preparing the code changes for your repository.")
 
-    # Here we call our GitHub Manager logic
-    # (Simplified for the launch demo)
+    # IMPORT the managers
     from github_manager import GitHubManager
     token = user_session['github_token']
-    
-    # In the prototype, we use your existing PAT if the mock fails
-    if "mock" in token:
-        token = os.getenv("GITHUB_TOKEN") 
-
-    manager = GitHubManager(token)
-    repo_owner = "divygoyal" # Simulating dynamic lookup
     repo_name = user_session['repo']
+    repo_owner = "divygoyal" # Simulating owner
     
+    # 1. Fetch current index.html
+    manager = GitHubManager(token)
     content, sha = manager.get_file_content(repo_owner, repo_name, "index.html")
-    if content:
-        # Simulate AI coding by adding a comment of the user's request
-        new_content = content + f"\n    <!-- AI Update: {user_request} -->"
+    
+    if not content:
+        bot.send_message(message.chat.id, "❌ Error: Could not access `index.html` in your repo.")
+        return
+
+    # 2. SMART LOCAL LOGIC (The "Jarvis" Muscle)
+    req = user_request.lower()
+    updated = False
+    new_content = content
+
+    # Case A: Change Background Color
+    if "background" in req and ("black" in req or "dark" in req):
+        new_content = new_content.replace("<body>", '<body style="background: #0a0a0a; color: white; font-family: sans-serif;">')
+        updated = True
+    
+    # Case B: Change Title/Heading
+    if "title" in req or "header" in req or "heading" in req:
+        # Simple extraction of what's inside quotes or after 'to'
+        suggested_title = user_request.split(" to ")[-1].strip("'\"")
+        new_content = new_content.replace("<h1>Welcome to Trial Molt Bot</h1>", f"<h1>{suggested_title}</h1>")
+        updated = True
+
+    # Case C: Add a section
+    if "add" in req and "section" in req:
+        section_title = user_request.split("about")[-1].strip()
+        new_section = f"\n    <section style='margin-top: 50px; padding: 20px; border: 1px solid #333; border-radius: 12px;'>\n        <h2>{section_title}</h2>\n        <p>This section was automatically generated by Trial Molt Bot's autonomous vibecoding engine.</p>\n    </section>"
+        new_content = new_content.replace("</body>", f"{new_section}\n</body>")
+        updated = True
+
+    # FINAL ACTION: If we matched a pattern, push it. 
+    # If not, log it for the Master Agent (Tony) to handle.
+    if updated:
         success = manager.update_file(repo_owner, repo_name, "index.html", new_content, f"Vibecode: {user_request}", sha)
-        
         if success:
-            bot.send_message(message.chat.id, "✨ **Done!** The change is live on GitHub.")
+            bot.send_message(message.chat.id, "✨ **Done!** I've applied the changes. Refresh your site to see the update.")
         else:
-            bot.send_message(message.chat.id, "❌ Push failed. Check repository permissions.")
+            bot.send_message(message.chat.id, "❌ Push failed. Check your repo permissions.")
     else:
-        bot.send_message(message.chat.id, "❌ Could not find `index.html` to edit.")
+        # LOG FOR TONY: The user requested something complex.
+        # We will add it to a JARVIS_QUEUE.md file which Tony monitors.
+        queue_content, q_sha = manager.get_file_content(repo_owner, repo_name, "JARVIS_QUEUE.md")
+        if not queue_content: queue_content = "# JARVIS PENDING TASKS\n"
+        
+        new_queue = queue_content + f"\n- [ ] **Request:** {user_request} (by Telegram User {message.chat.id})"
+        manager.update_file(repo_owner, repo_name, "JARVIS_QUEUE.md", new_queue, "Jarvis: Added complex task to queue", q_sha)
+        
+        bot.send_message(message.chat.id, "🚀 **Request Received!** That's a complex task. I've sent it to my core processor. I'll notify you here as soon as the code is ready.")
 
 if __name__ == "__main__":
     bot.infinity_polling()
